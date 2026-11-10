@@ -446,10 +446,10 @@ function getPathMappings(env) {
 }
 
 function serveHomepage() {
-	// 直接返回内联的HTML内容，不再需要尝试从外部加载
-	return new Response(HOMEPAGE_HTML, {
-		status: 200,
-		headers: { 'Content-Type': 'text/html; charset=utf-8' },
+	// Homepage hidden: the service answers DoH queries only.
+	return new Response('Not Found', {
+		status: 404,
+		headers: { 'Content-Type': 'text/plain; charset=utf-8' },
 	});
 }
 
