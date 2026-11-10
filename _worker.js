@@ -19,7 +19,7 @@ const DEFAULT_PATH_MAPPINGS = {
 		},
 	},
 	'/cloudflare': {
-		targetDomain: 'one.one.one.one',
+		targetDomain: 'wiwwj2z8j9.cloudflare-gateway.com',
 		pathMapping: {
 			'/query-dns': '/dns-query',
 		},
