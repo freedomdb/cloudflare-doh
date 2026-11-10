@@ -137,11 +137,6 @@ const HOMEPAGE_HTML = `<!DOCTYPE html>
 			  margin: 1rem 0;
 		  }
   
-		  .sponsor {
-			  background-color: #fff8e1;
-			  border-left: 4px solid var(--primary-color);
-		  }
-  
 		  .cta {
 			  text-align: center;
 			  margin: 2rem 0;
@@ -386,22 +381,6 @@ const HOMEPAGE_HTML = `<!DOCTYPE html>
   
 				  <h4>Android 设置</h4>
 				  <p>Android 暂不支持 DoH</p>
-			  </div>
-		  </section>
-  
-		  <section class="sponsor card">
-			  <h2>赞助商</h2>
-			  <h3><a href="https://www.adguardprivate.com" target="_blank">AdGuard Private</a> - 企业级 DNS 解析服务</h3>
-			  <p>感谢 <a href="https://www.adguardprivate.com" target="_blank">AdGuard Private</a> 对本项目的支持！</p>
-			  <ul>
-				  <li><strong>无限制查询</strong>：不受请求次数限制</li>
-				  <li><strong>隐私保护</strong>：增强的隐私保护机制</li>
-				  <li><strong>广告过滤</strong>：智能过滤广告和追踪器</li>
-				  <li><strong>灵活配置</strong>：支持自定义 DNS 记录</li>
-				  <li><strong>动态 DNS</strong>：内置 DDNS 功能</li>
-			  </ul>
-			  <div class="cta">
-				  <a href="https://www.adguardprivate.com" class="btn" target="_blank">了解更多</a>
 			  </div>
 		  </section>
   
