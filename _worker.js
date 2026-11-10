@@ -458,6 +458,19 @@ async function handleRequest(request, env) {
 	const path = url.pathname;
 	const queryString = url.search; // Preserves the query string with the '?'
 
+	// Strict allowlist: this service answers DoH queries on known paths
+	// only. Everything else (scanners probing for .env, .git, wp-admin,
+	// backups, ...) gets a flat 404.
+	const ALLOWED_PATHS = [
+		'/race/query-dns',
+		'/google/query-dns',
+		'/google-rfc/query-dns',
+		'/cloudflare/query-dns',
+	];
+	if (!ALLOWED_PATHS.includes(path) || !['GET', 'POST'].includes(request.method)) {
+		return serveHomepage();
+	}
+
 	// If the path is explicitly '/index.html' or '/', serve the homepage
 	if (path === '/index.html' || path === '/') {
 		return serveHomepage();
