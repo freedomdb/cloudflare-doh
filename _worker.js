@@ -463,6 +463,11 @@ async function handleRequest(request, env) {
 		return serveHomepage();
 	}
 
+	// Race mode: fan out to multiple DoH providers, fastest answer wins
+	if (path === '/race/query-dns') {
+		return handleRaceRequest(request, queryString);
+	}
+
 	// Get the path mappings from env or defaults
 	const pathMappings = getPathMappings(env);
 
@@ -504,6 +509,41 @@ async function handleRequest(request, env) {
 
 	// If no mapping is found, serve the homepage instead of 404
 	return serveHomepage();
+}
+
+// Race mode: query several RFC 8484 DoH providers at the same time and
+// return the first successful answer. Used via /race/query-dns.
+const RACE_PROVIDERS = ['dns.google', 'one.one.one.one', 'dns.quad9.net'];
+
+async function handleRaceRequest(request, queryString) {
+	const method = request.method;
+	const bodyBuf = method === 'POST' ? await request.arrayBuffer() : undefined;
+
+	const attempts = RACE_PROVIDERS.map(async (domain) => {
+		const resp = await fetch(`https://${domain}/dns-query${queryString}`, {
+			method,
+			headers: request.headers,
+			body: bodyBuf,
+			signal: AbortSignal.timeout(4000),
+		});
+		if (!resp.ok) {
+			throw new Error(`${domain} responded ${resp.status}`);
+		}
+		return resp;
+	});
+
+	try {
+		const winner = await Promise.any(attempts);
+		return new Response(winner.body, {
+			status: winner.status,
+			headers: {
+				'Content-Type':
+					winner.headers.get('Content-Type') || 'application/dns-message',
+			},
+		});
+	} catch (error) {
+		return new Response('All upstream DoH providers failed', { status: 502 });
+	}
 }
 
 // Export the worker
