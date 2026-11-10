@@ -513,7 +513,7 @@ async function handleRequest(request, env) {
 
 // Race mode: query several RFC 8484 DoH providers at the same time and
 // return the first successful answer. Used via /race/query-dns.
-const RACE_PROVIDERS = ['dns.google', 'one.one.one.one', 'dns.quad9.net'];
+const RACE_PROVIDERS = ['dns.google', 'one.one.one.one', 'doh.opendns.com'];
 
 async function handleRaceRequest(request, queryString) {
 	const method = request.method;
