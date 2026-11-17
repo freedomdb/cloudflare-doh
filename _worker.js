@@ -524,26 +524,36 @@ async function handleRequest(request, env) {
 	return serveHomepage();
 }
 
-// Race mode: query several RFC 8484 DoH providers at the same time and
-// return the first successful answer. Used via /race/query-dns.
-const RACE_PROVIDERS = ['dns.google', 'wiwwj2z8j9.cloudflare-gateway.com', 'doh.opendns.com'];
+// Race mode: query several DoH providers at the same time and return the
+// first successful answer. Used via /race/query-dns.
+// Google answers through its normal JSON API (/resolve), not RFC 8484, so
+// it only joins JSON-style GET queries; the Cloudflare Gateway leg keeps
+// the RFC 8484 /dns-query endpoint and also carries wire-format queries.
+// OpenDNS was removed from the race on 2026-11-17 at the owner's request.
+const RACE_PROVIDERS = [
+	{ domain: 'dns.google', path: '/resolve', jsonOnly: true },
+	{ domain: 'wiwwj2z8j9.cloudflare-gateway.com', path: '/dns-query', jsonOnly: false },
+];
 
 async function handleRaceRequest(request, queryString) {
 	const method = request.method;
 	const bodyBuf = method === 'POST' ? await request.arrayBuffer() : undefined;
+	const isJsonGet = method === 'GET' && /[?&]name=/.test(queryString);
 
-	const attempts = RACE_PROVIDERS.map(async (domain) => {
-		const resp = await fetch(`https://${domain}/dns-query${queryString}`, {
-			method,
-			headers: request.headers,
-			body: bodyBuf,
-			signal: AbortSignal.timeout(4000),
+	const attempts = RACE_PROVIDERS
+		.filter((provider) => !provider.jsonOnly || isJsonGet)
+		.map(async (provider) => {
+			const resp = await fetch(`https://${provider.domain}${provider.path}${queryString}`, {
+				method,
+				headers: request.headers,
+				body: provider.jsonOnly ? undefined : bodyBuf,
+				signal: AbortSignal.timeout(4000),
+			});
+			if (!resp.ok) {
+				throw new Error(`${provider.domain} responded ${resp.status}`);
+			}
+			return resp;
 		});
-		if (!resp.ok) {
-			throw new Error(`${domain} responded ${resp.status}`);
-		}
-		return resp;
-	});
 
 	try {
 		const winner = await Promise.any(attempts);
